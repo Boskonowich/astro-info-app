@@ -1,151 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Astro Info App</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f4f4f4;
-      padding: 20px;
-    }
-    .container {
-      max-width: 600px;
-      margin: 20px auto;
-      padding: 20px;
-      background-color: white;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      border-radius: 8px;
-    }
-    input[type="date"] {
-      padding: 10px;
-      margin: 10px 0;
-      width: 100%;
-    }
-    button {
-      padding: 10px 20px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .result {
-      margin-top: 20px;
-    }
-    .result div {
-      margin: 5px 0;
-    }
-  </style>
-</head>
-<body>
+// Main Function for Handling Date Input
+function getAstroDetails(dateOfBirth) {
+    const birthDate = new Date(dateOfBirth);
+    const day = birthDate.getDate();
+    const month = birthDate.getMonth() + 1; // Months are 0-indexed
+    const year = birthDate.getFullYear();
 
-<div class="container">
-  <h1>Know Your Astro Details</h1>
-  <p>Select your date of birth:</p>
-  <input type="date" id="dob">
-  <button onclick="calculateDetails()">Submit</button>
-  
-  <div class="result" id="result"></div>
-  <button onclick="generateReport()">Download Report</button>
-</div>
+    // Zodiac Sign Calculation
+    const zodiacSign = getZodiacSign(day, month);
 
-<script>
-function calculateDetails() {
-  const dob = new Date(document.getElementById('dob').value);
-  if (!dob) {
-    alert('Please select a valid date.');
-    return;
-  }
+    // Deterministic Lucky Number (based on date sum)
+    const luckyNumber = calculateLuckyNumber(day, month, year);
 
-  const result = document.getElementById('result');
-  result.innerHTML = ''; // Clear previous results
+    // Element based on Zodiac Sign (consistently mapped)
+    const element = getZodiacElement(zodiacSign);
 
-  const weekDay = dob.toLocaleString('en-us', { weekday: 'long' });
-  const zodiac = getZodiacSign(dob.getDate(), dob.getMonth() + 1);
-  const chineseZodiac = getChineseZodiac(dob.getFullYear());
-  const islamicDate = new Intl.DateTimeFormat('en-TN-u-ca-islamic', { dateStyle: 'full' }).format(dob);
-  const moonPhase = getMoonPhase(dob);
-
-  const luckyNumber = Math.floor(Math.random() * 9) + 1;
-  const element = getElement(chineseZodiac.year);
-  const stones = getStones(zodiac);
-
-  result.innerHTML = `
-    <div><strong>Day of the Week:</strong> ${weekDay}</div>
-    <div><strong>Zodiac Sign:</strong> ${zodiac}</div>
-    <div><strong>Chinese Zodiac:</strong> ${chineseZodiac.animal}</div>
-    <div><strong>Element:</strong> ${element}</div>
-    <div><strong>Lucky Stones:</strong> ${stones.join(', ')}</div>
-    <div><strong>Lucky Number:</strong> ${luckyNumber}</div>
-    <div><strong>Date in Islamic Calendar:</strong> ${islamicDate}</div>
-    <div><strong>Moon Phase:</strong> ${moonPhase}</div>
-  `;
-
-  // Save the results in local storage
-  localStorage.setItem('astroResult', result.innerHTML);
+    return {
+        zodiacSign,
+        luckyNumber,
+        element,
+    };
 }
 
+// Helper Functions
 function getZodiacSign(day, month) {
-  const signs = [
-    ['Capricorn', 'Aquarius'], ['Aquarius', 'Pisces'], ['Pisces', 'Aries'], ['Aries', 'Taurus'],
-    ['Taurus', 'Gemini'], ['Gemini', 'Cancer'], ['Cancer', 'Leo'], ['Leo', 'Virgo'],
-    ['Virgo', 'Libra'], ['Libra', 'Scorpio'], ['Scorpio', 'Sagittarius'], ['Sagittarius', 'Capricorn']
-  ];
-  const dates = [20, 19, 21, 20, 21, 21, 23, 23, 23, 23, 22, 22];
-  return day > dates[month - 1] ? signs[month - 1][1] : signs[month - 1][0];
+    const zodiacSigns = [
+        { sign: "Capricorn", start: [12, 22], end: [1, 19] },
+        { sign: "Aquarius", start: [1, 20], end: [2, 18] },
+        { sign: "Pisces", start: [2, 19], end: [3, 20] },
+        { sign: "Aries", start: [3, 21], end: [4, 19] },
+        { sign: "Taurus", start: [4, 20], end: [5, 20] },
+        { sign: "Gemini", start: [5, 21], end: [6, 20] },
+        { sign: "Cancer", start: [6, 21], end: [7, 22] },
+        { sign: "Leo", start: [7, 23], end: [8, 22] },
+        { sign: "Virgo", start: [8, 23], end: [9, 22] },
+        { sign: "Libra", start: [9, 23], end: [10, 22] },
+        { sign: "Scorpio", start: [10, 23], end: [11, 21] },
+        { sign: "Sagittarius", start: [11, 22], end: [12, 21] },
+    ];
+
+    return zodiacSigns.find(z =>
+        (month === z.start[0] && day >= z.start[1]) ||
+        (month === z.end[0] && day <= z.end[1])
+    ).sign;
 }
 
-function getChineseZodiac(year) {
-  const animals = ['Rat', 'Ox', 'Tiger', 'Rabbit', 'Dragon', 'Snake', 'Horse', 'Goat', 'Monkey', 'Rooster', 'Dog', 'Pig'];
-  return { year, animal: animals[(year - 4) % 12] };
+function calculateLuckyNumber(day, month, year) {
+    // Consistent lucky number derived from sum of digits of DOB
+    const sum = `${day}${month}${year}`
+        .split('')
+        .map(Number)
+        .reduce((acc, num) => acc + num, 0);
+
+    return sum % 9 || 9; // Return 1-9, fallback to 9
 }
 
-function getElement(year) {
-  const elements = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
-  return elements[Math.floor((year % 10) / 2)];
+function getZodiacElement(zodiacSign) {
+    const elementMap = {
+        "Aries": "Fire",
+        "Leo": "Fire",
+        "Sagittarius": "Fire",
+        "Taurus": "Earth",
+        "Virgo": "Earth",
+        "Capricorn": "Earth",
+        "Gemini": "Air",
+        "Libra": "Air",
+        "Aquarius": "Air",
+        "Cancer": "Water",
+        "Scorpio": "Water",
+        "Pisces": "Water",
+    };
+
+    return elementMap[zodiacSign];
 }
 
-function getStones(zodiac) {
-  const stones = {
-    Aries: ['Diamond', 'Ruby'], Taurus: ['Emerald', 'Rose Quartz'], Gemini: ['Pearl', 'Citrine'],
-    Cancer: ['Moonstone', 'Ruby'], Leo: ['Peridot', 'Sunstone'], Virgo: ['Sapphire', 'Jade'],
-    Libra: ['Opal', 'Lapis Lazuli'], Scorpio: ['Topaz', 'Malachite'], Sagittarius: ['Turquoise', 'Citrine'],
-    Capricorn: ['Garnet', 'Onyx'], Aquarius: ['Amethyst', 'Aquamarine'], Pisces: ['Aquamarine', 'Bloodstone']
-  };
-  return stones[zodiac] || ['Unknown'];
+// New Feature: Fun Historical Events
+function getHistoricalEvent(day, month) {
+    const events = {
+        "1-1": "New Year’s Day!",
+        "7-20": "First Moon Landing in 1969.",
+        "12-25": "Christmas Day!",
+        // Add more date-specific fun facts
+    };
+
+    return events[`${month}-${day}`] || "Nothing special, but you're awesome!";
 }
 
-function getMoonPhase(date) {
-  const lunarCycle = 29.53;
-  const knownNewMoon = new Date('2020-06-21'); // Reference New Moon date
-  const daysSinceKnownNewMoon = (date - knownNewMoon) / (1000 * 60 * 60 * 24);
-  const phase = (daysSinceKnownNewMoon % lunarCycle) / lunarCycle;
+// Event Listener to Display Results
+document.getElementById("submit").addEventListener("click", () => {
+    const dob = document.getElementById("dob").value;
+    const details = getAstroDetails(dob);
 
-  if (phase < 0.03 || phase > 0.97) return 'New Moon';
-  if (phase < 0.25) return 'First Quarter';
-  if (phase < 0.50) return 'Full Moon';
-  if (phase < 0.75) return 'Last Quarter';
-  return 'Waning Crescent';
-}
-
-function generateReport() {
-  const result = document.getElementById('result').innerHTML;
-  const blob = new Blob([result], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'Astro_Report.html';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-</script>
-
-</body>
-</html>
+    document.getElementById("result").innerHTML = `
+        <p>Zodiac Sign: ${details.zodiacSign}</p>
+        <p>Lucky Number: ${details.luckyNumber}</p>
+        <p>Element: ${details.element}</p>
+        <p>Fun Fact: ${getHistoricalEvent(
+            new Date(dob).getDate(),
+            new Date(dob).getMonth() + 1
+        )}</p>
+    `;
+});
