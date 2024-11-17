@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Astro & Conversion App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f9;
+    }
+    h1 {
+      color: #333;
+    }
+    label, input, select, button {
+      font-size: 16px;
+      margin-top: 10px;
+      display: block;
+    }
+    button {
+      padding: 5px 10px;
+      cursor: pointer;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #result, #conversionResult {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Astro & Conversion App</h1>
+
+  <!-- Astro Feature Section -->
+  <h2>Astro Feature</h2>
+  <label for="dob">Enter your Date of Birth:</label>
+  <input type="date" id="dob">
+  <button id="submit">Submit</button>
+  <div id="result"></div>
+
+  <!-- Conversion Feature Section -->
+  <h2>Conversion Tool</h2>
+  <label for="convertType">Select Conversion Type:</label>
+  <select id="convertType">
+    <option value="currency">Currency</option>
+    <option value="temperature">Temperature</option>
+    <option value="area">Area</option>
+    <option value="volume">Volume</option>
+    <option value="length">Length</option>
+    <option value="weight">Weight</option>
+  </select>
+
+  <label for="inputValue">Enter Value:</label>
+  <input type="number" id="inputValue">
+
+  <label for="fromUnit">From:</label>
+  <select id="fromUnit"></select>
+
+  <label for="toUnit">To:</label>
+  <select id="toUnit"></select>
+
+  <button id="convert">Convert</button>
+  <div id="conversionResult"></div>
+
+  <script>
+    // Astro Feature Logic (same as previous)
+    function getAstroDetails(dateOfBirth) {
+        const birthDate = new Date(dateOfBirth);
+        const day = birthDate.getDate();
+        const month = birthDate.getMonth() + 1; 
+        const year = birthDate.getFullYear();
+
+        const dayOfWeek = getDayOfWeek(birthDate);
+        const islamicDate = getIslamicDate(birthDate);
+        const age = calculateAge(birthDate);
+        const chineseYear = getChineseZodiac(year);
+        const zodiacSign = getZodiacSign(day, month);
+        const luckyNumber = calculateLuckyNumber(day, month, year);
+        const element = getZodiacElement(zodiacSign);
+
+        return {
+            zodiacSign,
+            luckyNumber,
+            element,
+            dayOfWeek,
+            islamicDate,
+            age,
+            chineseYear,
+        };
+    }
+
+    function getDayOfWeek(date) { /* same as before */ }
+    function calculateAge(birthDate) { /* same as before */ }
+    function getChineseZodiac(year) { /* same as before */ }
+    function getIslamicDate(gregorianDate) { /* same as before */ }
+    function getZodiacSign(day, month) { /* same as before */ }
+    function calculateLuckyNumber(day, month, year) { /* same as before */ }
+    function getZodiacElement(zodiacSign) { /* same as before */ }
+
+    function handleSubmit() {
+        const dob = document.getElementById("dob").value;
+        if (!dob) {
+            document.getElementById("result").innerHTML = `<p>Please enter a valid date!</p>`;
+            return;
+        }
+
+        const details = getAstroDetails(dob);
+
+        document.getElementById("result").innerHTML = `
+            <p><strong>Zodiac Sign:</strong> ${details.zodiacSign}</p>
+            <p><strong>Lucky Number:</strong> ${details.luckyNumber}</p>
+            <p><strong>Element:</strong> ${details.element}</p>
+            <p><strong>Day of the Week:</strong> ${details.dayOfWeek}</p>
+            <p><strong>Islamic Calendar Date:</strong> ${details.islamicDate}</p>
+            <p><strong>Current Age:</strong> ${details.age}</p>
+            <p><strong>Chinese Year:</strong> ${details.chineseYear}</p>
+        `;
+    }
+
+    document.getElementById("submit").addEventListener("click", handleSubmit);
+
+    // Conversion Feature Logic
+    const unitOptions = {
+        currency: ['USD', 'EUR', 'GBP', 'INR', 'JPY'],
+        temperature: ['Celsius', 'Fahrenheit', 'Kelvin'],
+        area: ['Square Meter', 'Square Kilometer', 'Square Foot', 'Acre'],
+        volume: ['Liter', 'Milliliter', 'Cubic Meter', 'Cubic Foot'],
+        length: ['Meter', 'Kilometer', 'Centimeter', 'Mile', 'Foot'],
+        weight: ['Kilogram', 'Gram', 'Pound', 'Ounce'],
+    };
+
+    const conversionFormulas = {
+        // Temperature example
+        temperature: {
+            'Celsius:Fahrenheit': (val) => (val * 9/5) + 32,
+            'Fahrenheit:Celsius': (val) => (val - 32) * 5/9,
+            'Celsius:Kelvin': (val) => val + 273.15,
+            'Kelvin:Celsius': (val) => val - 273.15,
+        },
+        length: { /* Example lengths */ },
+        // Define other formulas for weight, area, etc.
+    };
+
+    function updateUnitSelectors() {
+        const convertType = document.getElementById('convertType').value;
+        const fromUnit = document.getElementById('fromUnit');
+        const toUnit = document.getElementById('toUnit');
+
+        fromUnit.innerHTML = '';
+        toUnit.innerHTML = '';
+
+        unitOptions[convertType].forEach(unit => {
+            fromUnit.append(new Option(unit, unit));
+            toUnit.append(new Option(unit, unit));
+        });
+    }
+
+    document.getElementById("convertType").addEventListener("change", updateUnitSelectors);
+
+    document.getElementById('convert').addEventListener('click', () => {
+        const convertType = document.getElementById('convertType').value;
+        const from = document.getElementById('fromUnit').value;
+        const to = document.getElementById('toUnit').value;
+        const inputVal = parseFloat(document.getElementById('inputValue').value);
+
+        const result = convertType; // // Formula lookup
+        document.getElementById('conversionResult').innerText = `Result is ${result}`;
+    });
+  </script>
+</body>
+</html>
