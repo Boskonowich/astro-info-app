@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Astro Info App</title>
-  <link rel="manifest" href="manifest.json">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -53,6 +52,7 @@
   <button onclick="calculateDetails()">Submit</button>
   
   <div class="result" id="result"></div>
+  <button onclick="generateReport()">Download Report</button>
 </div>
 
 <script>
@@ -70,7 +70,8 @@ function calculateDetails() {
   const zodiac = getZodiacSign(dob.getDate(), dob.getMonth() + 1);
   const chineseZodiac = getChineseZodiac(dob.getFullYear());
   const islamicDate = new Intl.DateTimeFormat('en-TN-u-ca-islamic', { dateStyle: 'full' }).format(dob);
-  
+  const moonPhase = getMoonPhase(dob);
+
   const luckyNumber = Math.floor(Math.random() * 9) + 1;
   const element = getElement(chineseZodiac.year);
   const stones = getStones(zodiac);
@@ -83,7 +84,11 @@ function calculateDetails() {
     <div><strong>Lucky Stones:</strong> ${stones.join(', ')}</div>
     <div><strong>Lucky Number:</strong> ${luckyNumber}</div>
     <div><strong>Date in Islamic Calendar:</strong> ${islamicDate}</div>
+    <div><strong>Moon Phase:</strong> ${moonPhase}</div>
   `;
+
+  // Save the results in local storage
+  localStorage.setItem('astroResult', result.innerHTML);
 }
 
 function getZodiacSign(day, month) {
@@ -115,14 +120,31 @@ function getStones(zodiac) {
   };
   return stones[zodiac] || ['Unknown'];
 }
-</script>
 
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js').then(() => {
-      console.log('Service Worker Registered');
-    });
-  }
+function getMoonPhase(date) {
+  const lunarCycle = 29.53;
+  const knownNewMoon = new Date('2020-06-21'); // Reference New Moon date
+  const daysSinceKnownNewMoon = (date - knownNewMoon) / (1000 * 60 * 60 * 24);
+  const phase = (daysSinceKnownNewMoon % lunarCycle) / lunarCycle;
+
+  if (phase < 0.03 || phase > 0.97) return 'New Moon';
+  if (phase < 0.25) return 'First Quarter';
+  if (phase < 0.50) return 'Full Moon';
+  if (phase < 0.75) return 'Last Quarter';
+  return 'Waning Crescent';
+}
+
+function generateReport() {
+  const result = document.getElementById('result').innerHTML;
+  const blob = new Blob([result], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Astro_Report.html';
+  a.click();
+  URL.revokeObjectURL(url);
+}
 </script>
 
 </body>
