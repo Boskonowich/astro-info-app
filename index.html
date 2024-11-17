@@ -53,6 +53,12 @@
         const month = birthDate.getMonth() + 1; // Months are 0-indexed
         const year = birthDate.getFullYear();
 
+        // Additional Features
+        const dayOfWeek = getDayOfWeek(birthDate);
+        const islamicDate = getIslamicDate(birthDate);
+        const age = calculateAge(birthDate);
+        const chineseYear = getChineseZodiac(year);
+
         // Zodiac Sign Calculation
         const zodiacSign = getZodiacSign(day, month);
 
@@ -66,6 +72,10 @@
             zodiacSign,
             luckyNumber,
             element,
+            dayOfWeek,
+            islamicDate,
+            age,
+            chineseYear,
         };
     }
 
@@ -119,14 +129,37 @@
         return elementMap[zodiacSign];
     }
 
-    function getHistoricalEvent(day, month) {
-        const events = {
-            "1-1": "New Year’s Day!",
-            "7-20": "First Moon Landing in 1969.",
-            "12-25": "Christmas Day!",
-        };
+    function getDayOfWeek(date) {
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        return days[date.getDay()];
+    }
 
-        return events[`${month}-${day}`] || "Nothing special, but you're awesome!";
+    function calculateAge(birthDate) {
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    }
+
+    function getChineseZodiac(year) {
+        const animals = [
+            "Rat", "Ox", "Tiger", "Rabbit", "Dragon", "Snake",
+            "Horse", "Goat", "Monkey", "Rooster", "Dog", "Pig"
+        ];
+        return animals[(year - 4) % 12];
+    }
+
+    function getIslamicDate(gregorianDate) {
+        const months = ["Muharram", "Safar", "Rabi al-Awwal", "Rabi al-Thani", "Jumada al-Awwal", "Jumada al-Thani", "Rajab", "Sha'ban", "Ramadan", "Shawwal", "Dhu al-Qidah", "Dhu al-Hijjah"];
+        const islamicDate = new Intl.DateTimeFormat("en-TN-u-ca-islamic", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        }).format(gregorianDate);
+        return islamicDate;
     }
 
     function handleSubmit() {
@@ -142,20 +175,18 @@
             <p><strong>Zodiac Sign:</strong> ${details.zodiacSign}</p>
             <p><strong>Lucky Number:</strong> ${details.luckyNumber}</p>
             <p><strong>Element:</strong> ${details.element}</p>
-            <p><strong>Fun Fact:</strong> ${getHistoricalEvent(
-                new Date(dob).getDate(),
-                new Date(dob).getMonth() + 1
-            )}</p>
+            <p><strong>Day of the Week:</strong> ${details.dayOfWeek}</p>
+            <p><strong>Islamic Calendar Date:</strong> ${details.islamicDate}</p>
+            <p><strong>Current Age:</strong> ${details.age}</p>
+            <p><strong>Chinese Year:</strong> ${details.chineseYear}</p>
         `;
     }
 
-    // Attach event listeners
     document.getElementById("submit").addEventListener("click", handleSubmit);
 
-    // Enable 'Enter' key submission
     document.getElementById("dob").addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
-            e.preventDefault(); // Prevent default form submission
+            e.preventDefault();
             handleSubmit();
         }
     });
