@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Astro Info App</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: white;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+    input[type="date"] {
+      padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      margin-top: 20px;
+    }
+    .result div {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Know Your Astro Details</h1>
+  <p>Select your date of birth:</p>
+  <input type="date" id="dob">
+  <button onclick="calculateDetails()">Submit</button>
+  
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+function calculateDetails() {
+  const dob = new Date(document.getElementById('dob').value);
+  if (!dob) {
+    alert('Please select a valid date.');
+    return;
+  }
+
+  const result = document.getElementById('result');
+  result.innerHTML = ''; // Clear previous results
+
+  const weekDay = dob.toLocaleString('en-us', { weekday: 'long' });
+  const zodiac = getZodiacSign(dob.getDate(), dob.getMonth() + 1);
+  const chineseZodiac = getChineseZodiac(dob.getFullYear());
+  const islamicDate = new Intl.DateTimeFormat('en-TN-u-ca-islamic', { dateStyle: 'full' }).format(dob);
+  
+  const luckyNumber = Math.floor(Math.random() * 9) + 1;
+  const element = getElement(chineseZodiac.year);
+  const stones = getStones(zodiac);
+
+  result.innerHTML = `
+    <div><strong>Day of the Week:</strong> ${weekDay}</div>
+    <div><strong>Zodiac Sign:</strong> ${zodiac}</div>
+    <div><strong>Chinese Zodiac:</strong> ${chineseZodiac.animal}</div>
+    <div><strong>Element:</strong> ${element}</div>
+    <div><strong>Lucky Stones:</strong> ${stones.join(', ')}</div>
+    <div><strong>Lucky Number:</strong> ${luckyNumber}</div>
+    <div><strong>Date in Islamic Calendar:</strong> ${islamicDate}</div>
+  `;
+}
+
+function getZodiacSign(day, month) {
+  const signs = [
+    ['Capricorn', 'Aquarius'], ['Aquarius', 'Pisces'], ['Pisces', 'Aries'], ['Aries', 'Taurus'],
+    ['Taurus', 'Gemini'], ['Gemini', 'Cancer'], ['Cancer', 'Leo'], ['Leo', 'Virgo'],
+    ['Virgo', 'Libra'], ['Libra', 'Scorpio'], ['Scorpio', 'Sagittarius'], ['Sagittarius', 'Capricorn']
+  ];
+  const dates = [20, 19, 21, 20, 21, 21, 23, 23, 23, 23, 22, 22];
+  return day > dates[month - 1] ? signs[month - 1][1] : signs[month - 1][0];
+}
+
+function getChineseZodiac(year) {
+  const animals = ['Rat', 'Ox', 'Tiger', 'Rabbit', 'Dragon', 'Snake', 'Horse', 'Goat', 'Monkey', 'Rooster', 'Dog', 'Pig'];
+  return { year, animal: animals[(year - 4) % 12] };
+}
+
+function getElement(year) {
+  const elements = ['Wood', 'Fire', 'Earth', 'Metal', 'Water'];
+  return elements[Math.floor((year % 10) / 2)];
+}
+
+function getStones(zodiac) {
+  const stones = {
+    Aries: ['Diamond', 'Ruby'], Taurus: ['Emerald', 'Rose Quartz'], Gemini: ['Pearl', 'Citrine'],
+    Cancer: ['Moonstone', 'Ruby'], Leo: ['Peridot', 'Sunstone'], Virgo: ['Sapphire', 'Jade'],
+    Libra: ['Opal', 'Lapis Lazuli'], Scorpio: ['Topaz', 'Malachite'], Sagittarius: ['Turquoise', 'Citrine'],
+    Capricorn: ['Garnet', 'Onyx'], Aquarius: ['Amethyst', 'Aquamarine'], Pisces: ['Aquamarine', 'Bloodstone']
+  };
+  return stones[zodiac] || ['Unknown'];
+}
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js').then(() => {
+      console.log('Service Worker Registered');
+    });
+  }
+</script>
+
+</body>
+</html>
